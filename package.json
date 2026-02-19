@@ -9,9 +9,6 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:whack-a-mole-pro.openGame"
-  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [

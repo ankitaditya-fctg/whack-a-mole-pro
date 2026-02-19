@@ -161,13 +161,23 @@ export class GamePanel {
             background: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
           }
           
           .controls button:hover {
             background: var(--vscode-button-hoverBackground);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          }
+          
+          .controls button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
           }
           
           .controls select {
@@ -205,6 +215,23 @@ export class GamePanel {
             font-size: 24px;
             font-weight: bold;
             color: var(--vscode-button-background);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          
+          .stat-value.pop {
+            animation: scorePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          
+          @keyframes scorePop {
+            0% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.2);
+            }
+            100% {
+              transform: scale(1);
+            }
           }
           
           .game-board {
@@ -213,6 +240,16 @@ export class GamePanel {
             gap: 8px;
             margin-bottom: 20px;
             aspect-ratio: 1;
+          }
+          
+          .game-board.flash {
+            animation: boardFlash 0.15s ease-out;
+          }
+          
+          @keyframes boardFlash {
+            0% { background: rgba(255, 255, 255, 0); }
+            50% { background: rgba(255, 255, 255, 0.2); }
+            100% { background: rgba(255, 255, 255, 0); }
           }
           
           .mole-hole {
@@ -240,6 +277,47 @@ export class GamePanel {
             border-radius: 50%;
             border: 3px solid #222;
             box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5);
+            animation: molePop 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.1s ease;
+            cursor: pointer;
+          }
+          
+          .mole:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+          }
+          
+          @keyframes molePop {
+            0% {
+              transform: translate(-50%, -50%) scale(0.3);
+              opacity: 0;
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes moleHit {
+            0% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
+              opacity: 0.5;
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(0);
+              opacity: 0;
+            }
+          }
+          
+          .mole.hit {
+            animation: moleHit 0.3s ease-out forwards;
           }
           
           .mole::before {
@@ -266,21 +344,25 @@ export class GamePanel {
           
           .status {
             text-align: center;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 6px;
             background: var(--vscode-notificationCenter-border);
             color: var(--vscode-foreground);
             margin-bottom: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
           }
           
           .status.active {
-            background: var(--vscode-testing-runAction);
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
           }
           
           .status.ended {
-            background: var(--vscode-notificationsErrorIcon-foreground);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
             color: white;
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
           }
         </style>
       </head>
@@ -326,7 +408,7 @@ export class GamePanel {
         
         <script>
           const vscode = acquireVsCodeApi();
-          const board = new Map();
+          const holeToMoleMap = new Map(); // Maps hole index to current mole ID
           
           document.getElementById('startBtn').onclick = () => vscode.postMessage({ command: 'start' });
           document.getElementById('pauseBtn').onclick = () => vscode.postMessage({ command: 'pause' });
@@ -337,8 +419,17 @@ export class GamePanel {
             vscode.postMessage({ command: 'setDifficulty', difficulty: e.target.value });
           };
           
-          function hitMole(moleId) {
-            vscode.postMessage({ command: 'hitMole', moleId });
+          // Handle hole clicks - find the mole in that hole and hit it
+          function hitMole(holeIndex) {
+            const hole = document.querySelector(\`[data-index="\${holeIndex}"]\`);
+            const mole = hole ? hole.querySelector('.mole') : null;
+            
+            if (mole && mole.dataset.moleId) {
+              console.log('Mole clicked:', mole.dataset.moleId);
+              vscode.postMessage({ command: 'hitMole', moleId: mole.dataset.moleId });
+            } else {
+              console.log('No mole in hole:', holeIndex);
+            }
           }
           
           window.addEventListener('message', (event) => {
@@ -346,6 +437,7 @@ export class GamePanel {
             
             switch (message.type) {
               case 'gameStarted':
+                console.log('Game started:', message.difficulty);
                 document.getElementById('status').textContent = \`Game started on \${message.difficulty}\`;
                 document.getElementById('status').classList.add('active');
                 break;
@@ -354,21 +446,45 @@ export class GamePanel {
                 const [row, col] = message.position;
                 const index = row * 4 + col;
                 const hole = document.querySelector(\`[data-index="\${index}"]\`);
-                if (hole && !hole.querySelector('.mole')) {
+                console.log('Mole spawned:', message.moleId, 'at index:', index);
+                
+                if (hole) {
+                  // Remove any existing mole
+                  const oldMole = hole.querySelector('.mole');
+                  if (oldMole) oldMole.remove();
+                  
+                  // Create new mole
                   const mole = document.createElement('div');
                   mole.className = 'mole';
                   mole.dataset.moleId = message.moleId;
                   hole.appendChild(mole);
+                  holeToMoleMap.set(index, message.moleId);
                 }
                 break;
                 
               case 'moleHit':
-                const moles = document.querySelectorAll(\`[data-mole-id="\${message.moleId}"]\`);
-                moles.forEach(m => m.remove());
+                console.log('Mole hit:', message.moleId, 'points:', message.points);
+                // Find and animate the mole
+                const holeWithMole = document.querySelector(\`[data-mole-id="\${message.moleId}"]\`);
+                if (holeWithMole) {
+                  holeWithMole.classList.add('hit');
+                  setTimeout(() => holeWithMole.remove(), 300);
+                }
+                // Flash the board
+                const board = document.getElementById('gameBoard');
+                board.classList.add('flash');
+                setTimeout(() => board.classList.remove('flash'), 150);
                 break;
                 
               case 'scoreUpdated':
-                document.getElementById('score').textContent = message.score;
+                console.log('Score updated:', message.score);
+                const scoreEl = document.getElementById('score');
+                scoreEl.textContent = message.score;
+                // Trigger pop animation
+                scoreEl.classList.remove('pop');
+                void scoreEl.offsetWidth; // Trigger reflow
+                scoreEl.classList.add('pop');
+                setTimeout(() => scoreEl.classList.remove('pop'), 400);
                 break;
                 
               case 'timeTick':
@@ -376,6 +492,7 @@ export class GamePanel {
                 break;
                 
               case 'gameOver':
+                console.log('Game over! Final score:', message.finalScore);
                 document.getElementById('status').textContent = \`Game Over! Final Score: \${message.finalScore}\`;
                 document.getElementById('status').classList.remove('active');
                 document.getElementById('status').classList.add('ended');
