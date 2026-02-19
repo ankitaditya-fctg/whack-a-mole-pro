@@ -174,3 +174,20 @@ export class GameMediator {
     });
   }
 }
+
+// Add to GameMediator class for GitHub metrics
+export interface GameMetrics {
+  finalScore: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  playedAt: Date;
+  timeSurvived: number;
+}
+
+export function getGameMetrics(state: GameState, initialTime: number = 60): GameMetrics {
+  return {
+    finalScore: state.score,
+    difficulty: state.difficulty,
+    playedAt: new Date(),
+    timeSurvived: initialTime - state.timeRemaining,
+  };
+}
