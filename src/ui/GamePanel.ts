@@ -132,20 +132,29 @@ export class GamePanel {
           
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--vscode-editor-background);
+            background: linear-gradient(135deg, var(--vscode-editor-background) 0%, rgba(0,0,0,0.1) 100%);
             color: var(--vscode-editor-foreground);
             padding: 20px;
+            min-height: 100vh;
           }
           
           .container {
             max-width: 600px;
             margin: 0 auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
           }
           
           h1 {
             text-align: center;
             margin-bottom: 20px;
             font-size: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
           }
           
           .controls {
@@ -154,6 +163,10 @@ export class GamePanel {
             margin-bottom: 20px;
             flex-wrap: wrap;
             justify-content: center;
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
           }
           
           .controls button {
@@ -184,9 +197,22 @@ export class GamePanel {
             padding: 10px 12px;
             background: var(--vscode-dropdown-background);
             color: var(--vscode-dropdown-foreground);
-            border: 1px solid var(--vscode-dropdown-border);
-            border-radius: 4px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+          }
+          
+          .controls select:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.2);
+          }
+          
+          .controls select:focus {
+            outline: none;
+            border-color: var(--vscode-button-background);
+            box-shadow: 0 0 12px rgba(102, 126, 234, 0.3);
           }
           
           .stats {
@@ -198,10 +224,19 @@ export class GamePanel {
           }
           
           .stat-box {
-            background: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-editor-lineHighlightBackground);
+            background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+          }
+          
+          .stat-box:hover {
+            background: linear-gradient(135deg, rgba(102,126,234,0.2) 0%, rgba(118,75,162,0.2) 100%);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
           }
           
           .stat-label {
@@ -253,17 +288,20 @@ export class GamePanel {
           }
           
           .mole-hole {
-            background: var(--vscode-editor-background);
+            background: radial-gradient(circle at 30% 30%, rgba(100,100,100,0.3), rgba(50,50,50,0.8));
             border: 2px solid var(--vscode-editor-lineHighlightBackground);
             border-radius: 50%;
             position: relative;
             cursor: pointer;
             transition: all 0.2s;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
           }
           
           .mole-hole:hover {
             border-color: var(--vscode-button-background);
-            background: var(--vscode-editor-selectionBackground);
+            background: radial-gradient(circle at 30% 30%, rgba(150,150,150,0.4), rgba(80,80,80,0.8));
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 0 8px rgba(102, 126, 234, 0.3);
+            transform: scale(1.02);
           }
           
           .mole {
